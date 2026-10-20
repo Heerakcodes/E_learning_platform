@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% block title %}Browse Courses{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h1>📚 Available Courses</h1>
+        <p>Browse our complete course catalog. Enroll for free and start learning today!</p>
+    </div>
+
+    {% if courses_with_info %}
+    <div class="grid grid-3">
+        {% for item in courses_with_info %}
+        <div class="card course-card">
+            <!-- Course thumbnail or default icon -->
+            <div class="course-thumb">
+                {% if item.course.thumbnail %}
+                    <img src="{{ item.course.thumbnail.url }}" alt="{{ item.course.title }}"
+                         style="width:100%; height:100%; object-fit:cover;">
+                {% else %}
+                    📖
+                {% endif %}
+            </div>
+
+            <div class="course-meta">
+                <span>📦 {{ item.module_count }} module{{ item.module_count|pluralize }}</span>
+                <span>👥 {{ item.enrollment_count }} enrolled</span>
+            </div>
+
+            <div class="course-title">{{ item.course.title }}</div>
+            <p class="course-desc">{{ item.course.description }}</p>
+
+            <div class="card-footer" style="margin-top:auto;">
+                {% if item.is_enrolled %}
+                    <a href="{% url 'course_detail' item.course.id %}" class="btn btn-success btn-sm btn-block">
+                        ▶ Continue Learning
+                    </a>
+                {% else %}
+                    <a href="{% url 'course_detail' item.course.id %}" class="btn btn-primary btn-sm btn-block">
+                        👁️ View Course
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% else %}
+    <div class="card">
+        <div class="empty-state">
+            <div class="empty-icon">📭</div>
+            <h3>No Courses Available</h3>
+            <p>No courses have been published yet. Check back soon!</p>
+            {% if user.is_authenticated and user.profile.role == 'admin' %}
+            <a href="{% url 'add_course' %}" class="btn btn-primary mt-2">➕ Add First Course</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

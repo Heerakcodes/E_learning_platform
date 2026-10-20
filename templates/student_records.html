@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% block title %}Student Records{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header flex-between">
+        <div>
+            <h1>👥 Student Records</h1>
+            <p>{{ total_students }} registered student{{ total_students|pluralize }} on the platform</p>
+        </div>
+        <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary">← Dashboard</a>
+    </div>
+
+    {% if students_data %}
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Student Name</th>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Courses Enrolled</th>
+                    <th>Certificates</th>
+                    <th>Joined</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in students_data %}
+                <tr>
+                    <td style="color:var(--medium);">{{ forloop.counter }}</td>
+                    <td>
+                        <strong>{{ item.user.get_full_name|default:'—' }}</strong>
+                    </td>
+                    <td>{{ item.user.username }}</td>
+                    <td style="font-size:0.8rem;">{{ item.user.email }}</td>
+                    <td>
+                        <span class="badge badge-primary">{{ item.enrollment_count }}</span>
+                    </td>
+                    <td>
+                        {% if item.certificate_count > 0 %}
+                            <span class="badge badge-success">🏆 {{ item.certificate_count }}</span>
+                        {% else %}
+                            <span class="badge badge-secondary">0</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-size:0.8rem; color:var(--medium);">
+                        {{ item.date_joined|date:"d M Y" }}
+                    </td>
+                    <td>
+                        <a href="{% url 'student_detail' item.user.id %}" class="btn btn-outline btn-sm">
+                            👁️ View
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="card">
+        <div class="empty-state">
+            <div class="empty-icon">👥</div>
+            <h3>No Students Yet</h3>
+            <p>Students will appear here once they register.</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

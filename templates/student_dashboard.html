@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+{% block title %}My Dashboard{% endblock %}
+
+{% block content %}
+<div class="container">
+
+    <!-- ── PAGE HEADER ─────────────────────────────────────────── -->
+    <div class="page-header flex-between">
+        <div>
+            <h1>👋 Welcome, {{ user.first_name|default:user.username }}!</h1>
+            <p>Here's your learning progress overview</p>
+        </div>
+        <a href="{% url 'course_list' %}" class="btn btn-primary">
+            📚 Browse More Courses
+        </a>
+    </div>
+
+
+    <!-- ── SUMMARY STAT CARDS ─────────────────────────────────── -->
+    <!--
+        All three numbers below come from the database via get_student_dashboard_data().
+        They are NEVER hardcoded.
+    -->
+    <div class="grid grid-3 mb-4">
+        <div class="stat-card">
+            <div class="stat-icon blue">📚</div>
+            <div class="stat-info">
+                <div class="stat-value">{{ dashboard.total_enrolled }}</div>
+                <div class="stat-label">Courses Enrolled</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon green">✅</div>
+            <div class="stat-info">
+                <div class="stat-value">{{ dashboard.total_completed }}</div>
+                <div class="stat-label">Courses Completed</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon amber">🏆</div>
+            <div class="stat-info">
+                <div class="stat-value">{{ dashboard.total_certificates }}</div>
+                <div class="stat-label">Certificates Earned</div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ── ENROLLED COURSES ────────────────────────────────────── -->
+    <h2 class="mb-3">📖 My Courses</h2>
+
+    {% if dashboard.enrolled_courses %}
+        <div class="grid grid-2">
+            {% for item in dashboard.enrolled_courses %}
+            <!--
+                'item' is a dictionary returned by get_student_dashboard_data():
+                {
+                    'course':      Course object,
+                    'progress':    {'percentage': 60.0, 'completed_count': 3, ...},
+                    'certificate': Certificate object or None
+                }
+            -->
+            <div class="card course-card">
+                <div class="card-header">
+                    <div>
+                        <div class="course-title" style="font-size:1rem;">{{ item.course.title }}</div>
+                        <div style="font-size:0.78rem; color:var(--medium);">
+                            📅 Enrolled: {{ item.enrollment.enrolled_date|date:"d M Y" }}
+                        </div>
+                    </div>
+
+                    <!-- Completion badge (shows only when 100% done) -->
+                    {% if item.progress.is_complete %}
+                        <span class="badge badge-success">✅ Complete</span>
+                    {% else %}
+                        <span class="badge badge-warning">⏳ In Progress</span>
+                    {% endif %}
+                </div>
+
+                <div class="card-body">
+                    <!-- Progress Bar with dynamic width from DB calculation -->
+                    <div class="progress-wrapper">
+                        <div class="progress-label">
+                            <span>Progress</span>
+                            <span>{{ item.progress.percentage }}%</span>
+                        </div>
+                        <div class="progress-bar-track">
+                            <!--
+                                data-width="{{ item.progress.percentage }}" is read by JavaScript
+                                to animate the bar from 0% to the real percentage on page load.
+                            -->
+                            <div class="progress-bar-fill {% if item.progress.is_complete %}complete{% endif %}"
+                                 data-width="{{ item.progress.percentage }}"
+                                 style="width: 0%;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Module completion count (e.g., "3 of 5 modules done") -->
+                    <p style="font-size:0.8rem; color:var(--medium); margin-top:0.5rem;">
+                        {{ item.progress.completed_count }} of {{ item.progress.total_count }} modules completed
+                    </p>
+                </div>
+
+                <div class="card-footer flex-between">
+                    <a href="{% url 'course_detail' item.course.id %}" class="btn btn-primary btn-sm">
+                        {% if item.progress.is_complete %}📖 Review{% else %}▶ Continue{% endif %}
+                    </a>
+
+                    <!-- Show certificate button only if earned -->
+                    {% if item.certificate %}
+                    <a href="{% url 'view_certificate' item.course.id %}" class="btn btn-success btn-sm">
+                        🏆 Certificate
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+    {% else %}
+        <!-- Empty state: no courses enrolled yet -->
+        <div class="card">
+            <div class="empty-state">
+                <div class="empty-icon">📭</div>
+                <h3>No Courses Yet</h3>
+                <p>You haven't enrolled in any courses. Browse our catalog and start learning!</p>
+                <a href="{% url 'course_list' %}" class="btn btn-primary mt-2">
+                    🔍 Browse Courses
+                </a>
+            </div>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}

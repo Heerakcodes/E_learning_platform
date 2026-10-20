@@ -1,0 +1,97 @@
+{% load static %}
+<!DOCTYPE html>
+<!--
+    certificate.html — Certificate Page
+    
+    This page is intentionally standalone (doesn't extend base.html)
+    so it can be printed cleanly without the navbar and footer.
+    
+    The certificate data comes from the Certificate model in the database.
+    The certificate_id is auto-generated as a UUID when the record is saved.
+-->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certificate — {{ certificate.course.title }}</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        /* Print-specific styles */
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white; }
+            .certificate-page { padding: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navigation bar (hidden when printing) -->
+    <div class="no-print" style="background:white; border-bottom:1px solid #e2e8f0; padding:1rem;">
+        <div style="max-width:800px; margin:0 auto; display:flex; justify-content:space-between; align-items:center;">
+            <a href="{% url 'home' %}" style="font-weight:700; color:var(--primary);">🎓 EduLearn</a>
+            <div style="display:flex; gap:1rem;">
+                <button onclick="window.print()" class="btn btn-primary">🖨️ Print / Save PDF</button>
+                <a href="{% url 'student_dashboard' %}" class="btn btn-secondary">← Dashboard</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="certificate-page">
+        <div class="certificate-card">
+            <!-- Gold seal emoji as decorative element -->
+            <div class="certificate-seal">🏅</div>
+
+            <div class="certificate-title">Certificate of Completion</div>
+            <div class="certificate-subtitle">This is to certify that</div>
+
+            <!-- Student's full name (from Django's User model) -->
+            <div class="certificate-student-name">
+                {{ certificate.student.get_full_name|default:certificate.student.username }}
+            </div>
+
+            <div class="certificate-subtitle">has successfully completed the course</div>
+
+            <!-- Course name -->
+            <div class="certificate-course-name">
+                {{ certificate.course.title }}
+            </div>
+
+            <!-- Progress stats (100% since certificate is only issued at completion) -->
+            <div style="display:flex; justify-content:center; gap:3rem; margin:1.5rem 0; flex-wrap:wrap;">
+                <div style="text-align:center;">
+                    <div style="font-size:1.5rem; font-weight:800; color:var(--success);">
+                        {{ progress.percentage }}%
+                    </div>
+                    <div style="font-size:0.8rem; color:var(--medium);">Completion</div>
+                </div>
+                <div style="text-align:center;">
+                    <div style="font-size:1.5rem; font-weight:800; color:var(--primary);">
+                        {{ progress.total_count }}
+                    </div>
+                    <div style="font-size:0.8rem; color:var(--medium);">Modules Completed</div>
+                </div>
+                <div style="text-align:center;">
+                    <div style="font-size:1.5rem; font-weight:800; color:var(--dark);">
+                        {{ certificate.issue_date|date:"d M Y" }}
+                    </div>
+                    <div style="font-size:0.8rem; color:var(--medium);">Date Issued</div>
+                </div>
+            </div>
+
+            <!-- Issued by -->
+            <div style="border-top:2px solid var(--border); margin-top:1rem; padding-top:1rem;">
+                <p style="font-size:0.875rem; color:var(--medium);">
+                    Issued by <strong style="color:var(--primary);">EduLearn E-Learning Platform</strong>
+                </p>
+            </div>
+
+            <!-- Unique certificate ID (auto-generated UUID) -->
+            <div class="certificate-id">
+                Certificate ID: {{ certificate.certificate_id }}
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

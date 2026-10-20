@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+{% block title %}Performance Reports{% endblock %}
+
+{% block content %}
+<div class="container">
+
+    <!-- ── PAGE HEADER ─────────────────────────────────────────── -->
+    <div class="page-header flex-between">
+        <div>
+            <h1>📈 Performance Reports</h1>
+            <p>Course-wise analytics computed from student activity data</p>
+        </div>
+        <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary">← Dashboard</a>
+    </div>
+
+
+    <!-- ── OVERALL PLATFORM STATS ─────────────────────────────── -->
+    <!--
+        These numbers are pulled from the DB in report_view() in views.py.
+        NOT hardcoded — they update automatically as data changes.
+    -->
+    <div class="grid grid-4 mb-4">
+        <div class="stat-card">
+            <div class="stat-icon blue">👩‍🎓</div>
+            <div class="stat-info">
+                <div class="stat-value">{{ total_students }}</div>
+                <div class="stat-label">Total Students</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon indigo">📝</div>
+            <div class="stat-info">
+                <div class="stat-value">{{ total_enrollments }}</div>
+                <div class="stat-label">Total Enrollments</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon green">✅</div>
+            <div class="stat-info">
+                <div class="stat-value">{{ total_completions }}</div>
+                <div class="stat-label">Courses Completed</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon amber">📊</div>
+            <div class="stat-info">
+                <div class="stat-value">{{ overall_completion_rate }}%</div>
+                <div class="stat-label">Overall Completion Rate</div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ── HOW METRICS ARE CALCULATED (for presentation) ────────── -->
+    <div class="card mb-4" style="background:var(--info-light); border-color:var(--info);">
+        <h4 style="color:var(--info); margin-bottom:0.5rem;">ℹ️ How These Numbers Are Calculated</h4>
+        <ul style="font-size:0.875rem; color:#1e40af; margin-left:1.25rem;">
+            <li><strong>Completion Rate</strong> = (Students who finished all modules ÷ Total enrolled) × 100</li>
+            <li><strong>Avg. Score</strong> = Average of all StudentProgress.score values for completed modules</li>
+            <li><strong>All values</strong> come directly from MySQL via Django ORM queries — nothing is hardcoded</li>
+        </ul>
+    </div>
+
+
+    <!-- ── COURSE-WISE REPORT TABLE ───────────────────────────── -->
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">📊 Course Performance Breakdown</div>
+        </div>
+
+        {% if report_data %}
+        <div class="table-wrapper" style="border:none; box-shadow:none;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Course Name</th>
+                        <th>Modules</th>
+                        <th>Enrolled Students</th>
+                        <th>Completed</th>
+                        <th>Completion Rate</th>
+                        <th>Avg. Score</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in report_data %}
+                    <!--
+                        item.completion_rate and item.avg_score are computed by
+                        get_course_report_data() in utils.py using real DB aggregation.
+                    -->
+                    <tr>
+                        <td style="color:var(--medium);">{{ forloop.counter }}</td>
+                        <td>
+                            <strong>{{ item.course.title }}</strong>
+                            {% if not item.course.is_published %}
+                                <span class="badge badge-secondary" style="font-size:0.7rem;">Draft</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ item.course.total_modules }}</td>
+                        <td>{{ item.total_enrolled }}</td>
+                        <td>{{ item.completed_students }}</td>
+                        <td>
+                            <!-- Visual progress bar for completion rate -->
+                            <div style="display:flex; align-items:center; gap:0.5rem; min-width:120px;">
+                                <div class="progress-bar-track" style="flex:1; height:8px;">
+                                    <div class="progress-bar-fill {% if item.completion_rate >= 100 %}complete{% endif %}"
+                                         data-width="{{ item.completion_rate }}"
+                                         style="width:0%;">
+                                    </div>
+                                </div>
+                                <span style="font-size:0.8rem; font-weight:600; min-width:40px;">
+                                    {{ item.completion_rate }}%
+                                </span>
+                            </div>
+                        </td>
+                        <td>
+                            {% if item.avg_score > 0 %}
+                                <span class="badge {% if item.avg_score >= 80 %}badge-success{% elif item.avg_score >= 50 %}badge-warning{% else %}badge-danger{% endif %}">
+                                    {{ item.avg_score }}%
+                                </span>
+                            {% else %}
+                                <span class="badge badge-secondary">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'edit_course' item.course.id %}" class="btn btn-secondary btn-sm">Edit</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">📭</div>
+            <h3>No Data Yet</h3>
+            <p>Add courses and enroll students to see reports here.</p>
+            <a href="{% url 'add_course' %}" class="btn btn-primary mt-2">Add First Course</a>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

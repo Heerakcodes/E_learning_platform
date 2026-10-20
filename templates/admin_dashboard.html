@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container">
+
+    <!-- ── PAGE HEADER ─────────────────────────────────────────── -->
+    <div class="page-header flex-between">
+        <div>
+            <h1>🛠️ Admin Dashboard</h1>
+            <p>Platform overview and management center</p>
+        </div>
+        <a href="{% url 'add_course' %}" class="btn btn-primary">
+            ➕ Add New Course
+        </a>
+    </div>
+
+
+    <!-- ── PLATFORM STATISTICS (All from DB) ──────────────────── -->
+    <!--
+        All four numbers below are computed dynamically in admin_dashboard() view.
+        None of them are hardcoded. They come directly from MySQL via ORM queries.
+    -->
+    <div class="grid grid-4 mb-4">
+        <div class="stat-card">
+            <div class="stat-icon indigo">📚</div>
+            <div class="stat-info">
+                <div class="stat-value">{{ total_courses }}</div>
+                <div class="stat-label">Total Courses</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon blue">👩‍🎓</div>
+            <div class="stat-info">
+                <div class="stat-value">{{ total_students }}</div>
+                <div class="stat-label">Total Students</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon green">📝</div>
+            <div class="stat-info">
+                <div class="stat-value">{{ total_enrollments }}</div>
+                <div class="stat-label">Total Enrollments</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon amber">🏆</div>
+            <div class="stat-info">
+                <div class="stat-value">{{ total_certificates }}</div>
+                <div class="stat-label">Certificates Issued</div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ── TWO COLUMN LAYOUT ───────────────────────────────────── -->
+    <div class="grid grid-2">
+
+        <!-- LEFT: Recent Enrollments -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">🕐 Recent Enrollments</div>
+                <a href="{% url 'student_records' %}" class="btn btn-secondary btn-sm">View All</a>
+            </div>
+            {% if recent_enrollments %}
+            <div class="table-wrapper" style="border:none; box-shadow:none;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Course</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for enrollment in recent_enrollments %}
+                        <tr>
+                            <td>
+                                <strong>{{ enrollment.student.get_full_name|default:enrollment.student.username }}</strong>
+                            </td>
+                            <td>{{ enrollment.course.title }}</td>
+                            <td style="font-size:0.8rem; color:var(--medium);">
+                                {{ enrollment.enrolled_date|date:"d M Y" }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state" style="padding:2rem;">
+                <p>No enrollments yet.</p>
+            </div>
+            {% endif %}
+        </div>
+
+
+        <!-- RIGHT: Popular Courses -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">🔥 Top Courses by Enrollment</div>
+                <a href="{% url 'manage_courses' %}" class="btn btn-secondary btn-sm">Manage</a>
+            </div>
+            {% if popular_courses %}
+            <div style="display:flex; flex-direction:column; gap:0.75rem;">
+                {% for item in popular_courses %}
+                <div style="display:flex; align-items:center; gap:0.75rem;">
+                    <div style="width:36px; height:36px; border-radius:8px; background:var(--primary-light);
+                                color:var(--primary); display:flex; align-items:center; justify-content:center;
+                                font-weight:700; font-size:0.875rem; flex-shrink:0;">
+                        {{ forloop.counter }}
+                    </div>
+                    <div style="flex:1;">
+                        <div style="font-weight:600; font-size:0.9rem;">{{ item.course.title }}</div>
+                        <div style="font-size:0.78rem; color:var(--medium);">
+                            {{ item.enrollment_count }} student{{ item.enrollment_count|pluralize }}
+                            &nbsp;·&nbsp; {{ item.module_count }} module{{ item.module_count|pluralize }}
+                        </div>
+                    </div>
+                    <a href="{% url 'edit_course' item.course.id %}" class="btn btn-secondary btn-sm">Edit</a>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state" style="padding:2rem;">
+                <p>No courses yet. <a href="{% url 'add_course' %}">Add one!</a></p>
+            </div>
+            {% endif %}
+        </div>
+
+    </div>
+
+
+    <!-- ── QUICK ACTIONS ──────────────────────────────────────── -->
+    <div class="card mt-3">
+        <div class="card-title mb-2">⚡ Quick Actions</div>
+        <div style="display:flex; gap:1rem; flex-wrap:wrap;">
+            <a href="{% url 'add_course' %}" class="btn btn-primary">➕ Add Course</a>
+            <a href="{% url 'manage_courses' %}" class="btn btn-outline">🗂️ Manage Courses</a>
+            <a href="{% url 'student_records' %}" class="btn btn-outline">👥 Student Records</a>
+            <a href="{% url 'report_view' %}" class="btn btn-outline">📈 View Reports</a>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

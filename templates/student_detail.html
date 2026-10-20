@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block title %}{{ student.get_full_name|default:student.username }}'s Progress{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header flex-between">
+        <div>
+            <h1>👤 {{ student.get_full_name|default:student.username }}</h1>
+            <p>@{{ student.username }} · Joined {{ student.date_joined|date:"d M Y" }}</p>
+        </div>
+        <a href="{% url 'student_records' %}" class="btn btn-secondary">← Students</a>
+    </div>
+
+    <!-- Summary -->
+    <div class="grid grid-3 mb-4">
+        <div class="stat-card">
+            <div class="stat-icon blue">📚</div>
+            <div class="stat-info">
+                <div class="stat-value">{{ dashboard.total_enrolled }}</div>
+                <div class="stat-label">Enrolled Courses</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon green">✅</div>
+            <div class="stat-info">
+                <div class="stat-value">{{ dashboard.total_completed }}</div>
+                <div class="stat-label">Completed</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon amber">🏆</div>
+            <div class="stat-info">
+                <div class="stat-value">{{ dashboard.total_certificates }}</div>
+                <div class="stat-label">Certificates</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Course Progress -->
+    {% for item in dashboard.enrolled_courses %}
+    <div class="card mb-2">
+        <div class="flex-between">
+            <div>
+                <strong>{{ item.course.title }}</strong>
+                <div style="font-size:0.8rem; color:var(--medium);">
+                    {{ item.progress.completed_count }} of {{ item.progress.total_count }} modules done
+                </div>
+            </div>
+            <div style="display:flex; align-items:center; gap:1rem;">
+                <div style="min-width:200px;">
+                    <div class="progress-bar-track">
+                        <div class="progress-bar-fill {% if item.progress.is_complete %}complete{% endif %}"
+                             data-width="{{ item.progress.percentage }}" style="width:0%;"></div>
+                    </div>
+                    <div style="text-align:right; font-size:0.8rem; font-weight:600; margin-top:2px;">
+                        {{ item.progress.percentage }}%
+                    </div>
+                </div>
+                {% if item.certificate %}
+                <a href="{% url 'view_certificate' item.course.id %}?student_id={{ student.id }}"
+                   class="btn btn-success btn-sm">🏆 Cert</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="card">
+        <div class="empty-state"><p>This student has not enrolled in any courses yet.</p></div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

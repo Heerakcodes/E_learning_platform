@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<!--
+    base.html - The Master Template
+
+    HOW DJANGO TEMPLATES WORK:
+    - All other HTML files "extend" this file using: extends 'base.html'
+    - Blocks ( block name / endblock ) are placeholder sections
+      that child templates fill in with their own content.
+    - This way we only write the navbar, head, and footer ONCE here.
+
+    TEMPLATE TAGS (Django's special syntax):
+    - Write {{ variable }}   to output a Python variable
+    - Write block/endblock   for content sections
+    - Write load static      to load the static files helper
+    - Write url 'name'       to generate a URL from its name (defined in urls.py)
+-->
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Dynamic page title: child templates override the 'title' block -->
+    <title>{% block title %}EduLearn{% endblock %} | E-Learning Platform</title>
+
+    <!-- Our custom CSS (served from static/css/style.css) -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+    <!-- Additional styles from child templates -->
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    <!-- ── NAVIGATION BAR ──────────────────────────────────────── -->
+    <nav class="navbar">
+        <div class="navbar-inner">
+
+            <!-- Brand Logo -->
+            <a class="navbar-brand" href="{% url 'home' %}">
+                <span class="brand-icon">🎓</span>
+                EduLearn
+            </a>
+
+            <!-- Navigation Links -->
+            <ul class="navbar-nav">
+                <li><a href="{% url 'home' %}">🏠 Home</a></li>
+                <li><a href="{% url 'course_list' %}">📚 Courses</a></li>
+
+                {% if user.is_authenticated %}
+                    {% if user.profile.role == 'admin' %}
+                        <!-- Admin-only links -->
+                        <li><a href="{% url 'admin_dashboard' %}">📊 Dashboard</a></li>
+                        <li><a href="{% url 'manage_courses' %}">🗂️ Manage Courses</a></li>
+                        <li><a href="{% url 'student_records' %}">👥 Students</a></li>
+                        <li><a href="{% url 'report_view' %}">📈 Reports</a></li>
+                    {% else %}
+                        <!-- Student-only links -->
+                        <li><a href="{% url 'student_dashboard' %}">📊 My Dashboard</a></li>
+                    {% endif %}
+                {% endif %}
+            </ul>
+
+            <!-- User Info / Auth Buttons -->
+            <div class="navbar-user">
+                {% if user.is_authenticated %}
+                    <!-- Show user avatar, name, and role badge -->
+                    <div class="user-avatar">
+                        {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
+                    </div>
+                    <div>
+                        <div style="font-size:0.85rem; font-weight:600; color:#1e293b;">
+                            {{ user.get_full_name|default:user.username }}
+                        </div>
+                        <span class="role-badge {{ user.profile.role }}">
+                            {{ user.profile.role }}
+                        </span>
+                    </div>
+                    <!-- Logout button (uses a form + POST for security) -->
+                    <form id="logout-form" method="post" action="{% url 'logout' %}" style="margin:0;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-secondary btn-sm">Logout</button>
+                    </form>
+                {% else %}
+                    <!-- Show login/register links for guests -->
+                    <a href="{% url 'login' %}" class="btn btn-outline btn-sm">Login</a>
+                    <a href="{% url 'register' %}" class="btn btn-primary btn-sm">Register</a>
+                {% endif %}
+            </div>
+
+        </div>
+    </nav>
+    <!-- ── END NAVBAR ────────────────────────────────────────────── -->
+
+
+    <!-- ── FLASH MESSAGES ────────────────────────────────────────── -->
+    <!--
+        Django's messages framework lets us send one-time notifications.
+        For example: messages.success(request, "Course created!")
+        These appear as colored alerts that auto-dismiss after 5 seconds.
+    -->
+    {% if messages %}
+    <div class="messages-container">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {% if message.tags == 'success' %}✅{% elif message.tags == 'error' %}❌{% elif message.tags == 'warning' %}⚠️{% else %}ℹ️{% endif %}
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    <!-- ── END MESSAGES ─────────────────────────────────────────── -->
+
+
+    <!-- ── MAIN CONTENT ──────────────────────────────────────────── -->
+    <!-- Child templates fill in this block with their content -->
+    <main>
+        {% block content %}
+        <!-- Child template content goes here -->
+        {% endblock %}
+    </main>
+    <!-- ── END MAIN CONTENT ──────────────────────────────────────── -->
+
+
+    <!-- ── FOOTER ────────────────────────────────────────────────── -->
+    <footer>
+        <p>
+            &copy; 2024 <strong>EduLearn</strong> E-Learning Platform &nbsp;|&nbsp;
+            Built with 🐍 Django + MySQL &nbsp;|&nbsp;
+            Made for learning &amp; growing
+        </p>
+    </footer>
+    <!-- ── END FOOTER ────────────────────────────────────────────── -->
+
+
+    <!-- Our JavaScript file (loaded at the bottom so HTML loads first) -->
+    <script src="{% static 'js/script.js' %}"></script>
+
+    <!-- Additional scripts from child templates -->
+    {% block extra_js %}{% endblock %}
+
+</body>
+</html>

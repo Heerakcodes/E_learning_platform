@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% block title %}Welcome to EduLearn{% endblock %}
+
+{% block content %}
+
+<!-- ── HERO SECTION ──────────────────────────────────────────────── -->
+<section class="hero">
+    <div class="container">
+        <h1>🎓 Learn. Grow. Achieve.</h1>
+        <p>
+            Your complete online learning platform — structured courses, progress tracking,
+            and certificates to celebrate your achievements.
+        </p>
+        <div style="display:flex; gap:1rem; justify-content:center; flex-wrap:wrap;">
+            <a href="{% url 'register' %}" class="btn btn-lg" style="background:white; color:var(--primary); font-weight:700;">
+                🚀 Get Started Free
+            </a>
+            <a href="{% url 'course_list' %}" class="btn btn-lg btn-outline" style="border-color:white; color:white;">
+                📚 Browse Courses
+            </a>
+        </div>
+
+        <!-- Real stats from the database (no fake numbers!) -->
+        <div class="hero-stats">
+            <div class="hero-stat">
+                <div class="value">{{ total_courses }}</div>
+                <div class="label">📖 Courses Available</div>
+            </div>
+            <div class="hero-stat">
+                <div class="value">{{ total_students }}</div>
+                <div class="label">👩‍🎓 Active Students</div>
+            </div>
+            <div class="hero-stat">
+                <div class="value">{{ total_certificates }}</div>
+                <div class="label">🏆 Certificates Issued</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── FEATURES SECTION ──────────────────────────────────────────── -->
+<section style="padding: 4rem 0; background: white;">
+    <div class="container">
+        <div class="text-center mb-4">
+            <h2>Why EduLearn?</h2>
+            <p>Everything you need to learn effectively, all in one place.</p>
+        </div>
+        <div class="grid grid-3">
+            <div class="card text-center">
+                <div style="font-size:2.5rem; margin-bottom:1rem;">📊</div>
+                <h3>Track Your Progress</h3>
+                <p>See exactly how far you've come with real-time progress percentages calculated from your completed modules.</p>
+            </div>
+            <div class="card text-center">
+                <div style="font-size:2.5rem; margin-bottom:1rem;">🏆</div>
+                <h3>Earn Certificates</h3>
+                <p>Automatically receive a course completion certificate the moment you finish all modules. No manual process needed.</p>
+            </div>
+            <div class="card text-center">
+                <div style="font-size:2.5rem; margin-bottom:1rem;">🗂️</div>
+                <h3>Structured Learning</h3>
+                <p>Courses are organized into numbered modules so you always know what to study next and never feel lost.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── CALL TO ACTION ────────────────────────────────────────────── -->
+<section style="padding: 4rem 0; background: var(--light); text-align:center;">
+    <div class="container">
+        <h2>Ready to start learning?</h2>
+        <p style="margin-bottom:2rem;">Join our community of learners today. Registration is free!</p>
+        <a href="{% url 'register' %}" class="btn btn-primary btn-lg">Create Your Account</a>
+        <span style="margin: 0 1rem; color: var(--medium);">or</span>
+        <a href="{% url 'login' %}" class="btn btn-outline btn-lg">Log In</a>
+    </div>
+</section>
+
+{% endblock %}

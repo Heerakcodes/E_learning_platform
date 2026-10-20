@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+{% block title %}{{ course.title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+
+    <!-- ── BREADCRUMB ──────────────────────────────────────────── -->
+    <div style="font-size:0.85rem; color:var(--medium); margin-bottom:1rem;">
+        <a href="{% url 'course_list' %}">📚 Courses</a>
+        &rsaquo; {{ course.title }}
+    </div>
+
+
+    <!-- ── COURSE HEADER ───────────────────────────────────────── -->
+    <div class="card mb-3">
+        <div class="flex-between" style="flex-wrap:wrap; gap:1rem;">
+            <div style="flex:1; min-width:280px;">
+                <h1 style="font-size:1.75rem; margin-bottom:0.5rem;">{{ course.title }}</h1>
+                <p>{{ course.description }}</p>
+                <div style="display:flex; gap:1.5rem; margin-top:1rem; font-size:0.85rem; color:var(--medium);">
+                    <span>📦 {{ course.total_modules }} Module{{ course.total_modules|pluralize }}</span>
+                    <span>👥 {{ course.get_enrollment_count }} Student{{ course.get_enrollment_count|pluralize }}</span>
+                    <span>📅 {{ course.created_at|date:"d M Y" }}</span>
+                </div>
+            </div>
+
+            <!-- Enroll button (only if not already enrolled) -->
+            <div>
+                {% if is_enrolled %}
+                    <span class="badge badge-success" style="font-size:0.9rem; padding:0.5rem 1rem;">
+                        ✅ Enrolled
+                    </span>
+                {% else %}
+                    <form method="post" action="{% url 'enroll_course' course.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            🎯 Enroll Now — Free
+                        </button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+
+
+        <!-- ── PROGRESS BAR (only shown when enrolled) ─────────── -->
+        {% if is_enrolled and progress %}
+        <div style="margin-top:1.5rem; padding-top:1.5rem; border-top:1px solid var(--border);">
+            <div class="flex-between mb-1">
+                <strong>Your Progress</strong>
+                <strong style="color:{% if progress.is_complete %}var(--success){% else %}var(--primary){% endif %};">
+                    {{ progress.percentage }}%
+                </strong>
+            </div>
+            <div class="progress-bar-track">
+                <div class="progress-bar-fill {% if progress.is_complete %}complete{% endif %}"
+                     data-width="{{ progress.percentage }}"
+                     style="width: 0%;">
+                </div>
+            </div>
+            <p style="font-size:0.8rem; color:var(--medium); margin-top:0.4rem;">
+                {{ progress.completed_count }} of {{ progress.total_count }} modules completed
+                {% if progress.remaining_count > 0 %}
+                    &nbsp;— {{ progress.remaining_count }} module{{ progress.remaining_count|pluralize }} remaining
+                {% endif %}
+            </p>
+
+            <!-- Certificate button when 100% done -->
+            {% if certificate %}
+            <div style="margin-top:1rem;">
+                <a href="{% url 'view_certificate' course.id %}" class="btn btn-success">
+                    🏆 View Your Certificate
+                </a>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+
+    <!-- ── MODULE LIST ─────────────────────────────────────────── -->
+    <h2 class="mb-2">📋 Course Modules</h2>
+
+    {% if modules_with_status %}
+        {% for item in modules_with_status %}
+        <!--
+            'item' has: item.module, item.is_completed, item.score, item.completed_at
+            is_completed is pulled from StudentProgress table (real DB data)
+        -->
+        <div class="module-item {% if item.is_completed %}completed{% endif %}">
+
+            <!-- Module number circle -->
+            <div class="module-number">
+                {% if item.is_completed %}✓{% else %}{{ item.module.module_order }}{% endif %}
+            </div>
+
+            <!-- Module info -->
+            <div class="module-info" style="flex:1;">
+                <div class="module-title">{{ item.module.title }}</div>
+                <div class="module-meta">
+                    ⏱️ ~{{ item.module.duration_minutes }} min
+                    {% if item.is_completed %}
+                        &nbsp;·&nbsp; ✅ Completed on {{ item.completed_at|date:"d M Y" }}
+                        {% if item.score is not None %}
+                            &nbsp;·&nbsp; Score: <strong>{{ item.score }}%</strong>
+                        {% endif %}
+                    {% endif %}
+                </div>
+                {% if item.module.content %}
+                <p style="font-size:0.875rem; color:var(--medium); margin-top:0.5rem;">
+                    {{ item.module.content|truncatewords:30 }}
+                </p>
+                {% endif %}
+            </div>
+
+            <!-- Mark Complete button (only if enrolled and not yet done) -->
+            {% if is_enrolled and not item.is_completed %}
+            <form method="post" action="{% url 'mark_module_complete' item.module.id %}"
+                  style="display:flex; align-items:center; gap:0.5rem; flex-shrink:0;">
+                {% csrf_token %}
+                <input type="number" name="score" class="form-control"
+                       style="width:90px;" placeholder="Score" min="0" max="100" step="0.1">
+                <button type="submit" class="btn btn-success btn-sm">✓ Done</button>
+            </form>
+            {% elif item.is_completed %}
+                <span class="badge badge-success">✅ Done</span>
+            {% elif not is_enrolled %}
+                <span class="badge badge-secondary">🔒 Enroll to access</span>
+            {% endif %}
+
+        </div>
+        {% endfor %}
+
+    {% else %}
+        <div class="card">
+            <div class="empty-state">
+                <div class="empty-icon">📭</div>
+                <h3>No Modules Yet</h3>
+                <p>This course has no modules yet. Check back soon!</p>
+            </div>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}
