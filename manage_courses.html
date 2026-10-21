@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block title %}Manage Courses{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header flex-between">
+        <div>
+            <h1>🗂️ Manage Courses</h1>
+            <p>Add, edit, or delete courses on the platform</p>
+        </div>
+        <a href="{% url 'add_course' %}" class="btn btn-primary">➕ Add New Course</a>
+    </div>
+
+    {% if courses_with_info %}
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Course Title</th>
+                    <th>Modules</th>
+                    <th>Enrollments</th>
+                    <th>Status</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in courses_with_info %}
+                <tr>
+                    <td style="color:var(--medium);">{{ forloop.counter }}</td>
+                    <td><strong>{{ item.course.title }}</strong></td>
+                    <td>{{ item.module_count }}</td>
+                    <td>{{ item.enrollment_count }}</td>
+                    <td>
+                        {% if item.course.is_published %}
+                            <span class="badge badge-success">✅ Published</span>
+                        {% else %}
+                            <span class="badge badge-secondary">📝 Draft</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-size:0.8rem; color:var(--medium);">
+                        {{ item.course.created_at|date:"d M Y" }}
+                    </td>
+                    <td>
+                        <div style="display:flex; gap:0.5rem;">
+                            <a href="{% url 'edit_course' item.course.id %}" class="btn btn-outline btn-sm">✏️ Edit</a>
+                            <a href="{% url 'add_module' item.course.id %}" class="btn btn-secondary btn-sm">➕ Module</a>
+                            <form method="post" action="{% url 'delete_course' item.course.id %}"
+                                  data-confirm="Delete '{{ item.course.title }}'? All its modules and student progress will be permanently deleted!">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger btn-sm">🗑️</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="card">
+        <div class="empty-state">
+            <div class="empty-icon">📭</div>
+            <h3>No Courses Yet</h3>
+            <p>Create your first course to get started!</p>
+            <a href="{% url 'add_course' %}" class="btn btn-primary mt-2">➕ Create First Course</a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

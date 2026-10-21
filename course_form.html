@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% block title %}{{ action }} Course{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width:720px;">
+    <div class="page-header flex-between">
+        <h1>{% if action == 'Add' %}➕ Add New Course{% else %}✏️ Edit Course{% endif %}</h1>
+        <a href="{% url 'manage_courses' %}" class="btn btn-secondary">← Back</a>
+    </div>
+
+    <div class="card">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label class="form-label">Course Title <span style="color:red">*</span></label>
+                <input type="text" name="title" class="form-control"
+                       value="{{ course.title|default:'' }}"
+                       placeholder="e.g., Introduction to Python Programming" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Course Description <span style="color:red">*</span></label>
+                <textarea name="description" class="form-control" rows="5"
+                          placeholder="Describe what students will learn in this course...">{{ course.description|default:'' }}</textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Course Thumbnail (optional)</label>
+                <input type="file" name="thumbnail" class="form-control" accept="image/*">
+                {% if course.thumbnail %}
+                <p class="form-hint">Current: {{ course.thumbnail.name }}</p>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label class="form-check">
+                    <input type="checkbox" class="form-check-input" name="is_published"
+                           {% if course.is_published or not course %}checked{% endif %}>
+                    Publish this course (make it visible to students)
+                </label>
+            </div>
+
+            <div style="display:flex; gap:1rem; margin-top:1.5rem;">
+                <button type="submit" class="btn btn-primary">
+                    {% if action == 'Add' %}✅ Create Course{% else %}💾 Save Changes{% endif %}
+                </button>
+                <a href="{% url 'manage_courses' %}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+
+        <!-- Show module management section when editing an existing course -->
+        {% if course and action == 'Edit' %}
+        <div style="margin-top:2rem; padding-top:2rem; border-top:1px solid var(--border);">
+            <div class="flex-between mb-2">
+                <h3>📦 Modules ({{ course.total_modules }})</h3>
+                <a href="{% url 'add_module' course.id %}" class="btn btn-outline btn-sm">
+                    ➕ Add Module
+                </a>
+            </div>
+
+            {% for module in course.modules.all %}
+            <div class="module-item">
+                <div class="module-number">{{ module.module_order }}</div>
+                <div class="module-info">
+                    <div class="module-title">{{ module.title }}</div>
+                    <div class="module-meta">⏱️ {{ module.duration_minutes }} min</div>
+                </div>
+                <div style="display:flex; gap:0.5rem;">
+                    <a href="{% url 'edit_module' module.id %}" class="btn btn-secondary btn-sm">Edit</a>
+                    <form method="post" action="{% url 'delete_module' module.id %}"
+                          data-confirm="Delete module '{{ module.title }}'? This cannot be undone.">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                    </form>
+                </div>
+            </div>
+            {% empty %}
+            <div class="empty-state" style="padding:1.5rem;">
+                <p>No modules yet. <a href="{% url 'add_module' course.id %}">Add the first module</a></p>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

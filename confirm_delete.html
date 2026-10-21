@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block title %}⚠️ Confirm Delete{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width:560px;">
+    <div class="card" style="text-align:center; padding:3rem;">
+        <div style="font-size:3rem; margin-bottom:1rem;">⚠️</div>
+        <h2 style="color:var(--danger); margin-bottom:1rem;">Confirm Deletion</h2>
+
+        {% if course and not module %}
+        <p style="font-size:1rem; margin-bottom:0.5rem;">
+            You are about to permanently delete the course:
+        </p>
+        <p style="font-size:1.25rem; font-weight:700; color:var(--dark); margin-bottom:1rem;">
+            "{{ course.title }}"
+        </p>
+        <div class="alert alert-error" style="text-align:left; margin-bottom:1.5rem;">
+            ❌ This will also delete ALL modules, ALL student enrollments, and ALL progress records for this course. This action CANNOT be undone.
+        </div>
+        <form method="post" action="{% url 'delete_course' course.id %}">
+            {% csrf_token %}
+            <div style="display:flex; gap:1rem; justify-content:center;">
+                <button type="submit" class="btn btn-danger btn-lg">🗑️ Yes, Delete Course</button>
+                <a href="{% url 'manage_courses' %}" class="btn btn-secondary btn-lg">Cancel</a>
+            </div>
+        </form>
+
+        {% elif module %}
+        <p style="font-size:1rem; margin-bottom:0.5rem;">
+            You are about to delete the module:
+        </p>
+        <p style="font-size:1.25rem; font-weight:700; color:var(--dark); margin-bottom:1rem;">
+            "{{ module.title }}"
+        </p>
+        <div class="alert alert-error" style="text-align:left; margin-bottom:1.5rem;">
+            ❌ This will also delete all student progress records for this module. Cannot be undone.
+        </div>
+        <form method="post" action="{% url 'delete_module' module.id %}">
+            {% csrf_token %}
+            <div style="display:flex; gap:1rem; justify-content:center;">
+                <button type="submit" class="btn btn-danger btn-lg">🗑️ Yes, Delete Module</button>
+                <a href="{% url 'edit_course' course.id %}" class="btn btn-secondary btn-lg">Cancel</a>
+            </div>
+        </form>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
